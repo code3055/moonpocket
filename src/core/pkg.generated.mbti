@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "local/moonpocket/core"
+package "code3055/moonpocket/core"
 
 // Values
 pub fn analyze_text(String, Int, Int) -> Result[String, String]

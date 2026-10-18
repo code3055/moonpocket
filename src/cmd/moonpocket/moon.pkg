@@ -1,5 +1,5 @@
 import {
-  "local/moonpocket/core",
+  "code3055/moonpocket/core",
   "moonbitlang/core/env",
 }
 

@@ -75,7 +75,7 @@ match @core.analyze_text("day 09:00 18:00\nbusy lunch 12:00 13:00", 45, 10) {
 }
 ```
 
-`@core.svg_from_text(text, min_focus, recovery)` 返回 `Result[String, String]`，可单独生成时间轴。核心不含文件读写或全局状态。同样的输入和参数产生相同输出。
+使用 API 的包名为 `code3055/moonpocket/core`。`@core.svg_from_text(text, min_focus, recovery)` 返回 `Result[String, String]`，可单独生成时间轴。核心不含文件读写或全局状态。同样的输入和参数产生相同输出。
 
 ## 验证
 
@@ -87,6 +87,10 @@ $env:MOON_HOME = 'E:\moonbit\moonbit-cli'
 & "$env:MOON_HOME/bin/moon.exe" build --target js src/cmd/moonpocket
 node --test tests/cli.integration.test.mjs
 ```
+
+## 发布到 Mooncakes
+
+模块配置为 `code3055/moonpocket`。请使用 Mooncakes 用户名 `code3055` 登录；首次使用先运行 `moon register`，已有账号运行 `moon login`。登录成功后，在项目根目录依次运行 `moon package --list`、`moon publish --dry-run` 检查打包文件和远端预检，最后运行 `moon publish` 发布 `0.1.0`。本地预检收到 `202 Accepted: Dry run completed successfully`，且明确没有写入远端；当前工具链在显示该成功消息后仍可能以退出码 1 结束，因此请以服务器返回的具体消息判断预检结果。发布后检查 `https://mooncakes.io/code3055/moonpocket`。版本号一旦发布不能重复发布；后续更新需先在 `moon.mod` 增加版本号。详见 [官方发布指南](https://docs.moonbitlang.com/en/latest/toolchain/moon/package-manage-tour.html)。
 
 ## 参考项目浅析
 
