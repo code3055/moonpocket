@@ -96,7 +96,26 @@ fn words(s : String) -> Array[Array[String]] {
   let lines : Array[Array[String]] = []
   let mut row : Array[String] = []
   let mut word = ""
+  let mut comment = false
+  let mut first = true
   for c in s {
+    if first && c == '\u{FEFF}' {
+      first = false
+      continue
+    }
+    first = false
+    if comment {
+      if c == '\n' {
+        lines.push(row)
+        row = []
+        comment = false
+      }
+      continue
+    }
+    if c == '#' && word == "" {
+      comment = true
+      continue
+    }
     if c == ' ' || c == '\t' || c == '\r' || c == '\n' {
       if word != "" {
         row.push(word)
