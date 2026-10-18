@@ -65,7 +65,7 @@ fn run() -> Unit {
     let key = args[i]
     if key == "--help" || key == "-h" {
       println(
-        "MoonPocket — find real focus pockets and simulate reclaiming time\n--input <file>       day snapshot (default: built-in example)\n--report <file>      JSON report (also printed to stdout)\n--svg <file>         annotated timeline\n--min-focus <n>      minimum usable pocket minutes (default 45)\n--recovery <n>       recovery after busy blocks (default 10)\n--require-focus <n>  exit 1 when total focus minutes fall below n\nExit codes: 0 success, 1 focus gate unmet, 2 input/options/I/O error",
+        "MoonPocket — find real focus pockets and simulate reclaiming time\n--input <file>       day snapshot (default: built-in example)\n--report <file>      JSON report (also printed to stdout)\n--svg <file>         annotated timeline\n--min-focus <n>      minimum usable pocket minutes (default 45)\n--recovery <n>       recovery after busy blocks (default 10)\n--require-focus <n>  exit 1 when total focus minutes fall below n\n--markdown <file>    readable focus report\n--input -            read stdin\n--ics <file>         export local-time focus calendar\n--date <YYYY-MM-DD>   required for calendar export\nExit codes: 0 success, 1 focus gate unmet, 2 input/options/I/O error",
       )
       return
     }
