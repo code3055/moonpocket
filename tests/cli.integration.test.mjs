@@ -62,6 +62,20 @@ test('help is available without a snapshot', () => {
   assert.equal(result.status, 0);
   assert.match(result.stdout, /--require-focus/);
 });
+test('calendar requires a valid date and exports only qualified local-time pockets', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'moonpocket-ics-'));
+  try {
+    const output = join(dir, 'focus.ics');
+    assert.equal(run('--ics', output).status, 2);
+    assert.equal(run('--ics', output, '--date', '2026-02-29').status, 2);
+    const result = run('--input', 'examples/quiet.day', '--ics', output, '--date', '2026-10-18');
+    assert.equal(result.status, 0, result.stderr);
+    const calendar = readFileSync(output, 'utf8');
+    assert.equal((calendar.match(/BEGIN:VEVENT/g) || []).length, 2);
+    assert.match(calendar, /DTSTART:20261018T131000/);
+    assert.ok(calendar.endsWith('END:VCALENDAR' + String.fromCharCode(13,10)));
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
 test('stdin accepts piped snapshots and rejects malformed piped input', () => {
   const good = spawnSync(process.execPath, [cli, '--input', '-'], { encoding: 'utf8', input: 'day 09:00 10:00' });
   assert.equal(good.status, 0, good.stderr);

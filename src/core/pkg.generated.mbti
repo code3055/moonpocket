@@ -4,6 +4,8 @@ package "code3055/moonpocket/core"
 // Values
 pub fn analyze_text(String, Int, Int) -> Result[String, String]
 
+pub fn calendar_from_text(String, Int, Int, String) -> Result[String, String]
+
 pub fn markdown_from_text(String, Int, Int) -> Result[String, String]
 
 pub fn svg_from_text(String, Int, Int) -> Result[String, String]

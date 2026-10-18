@@ -55,6 +55,8 @@ fn run() -> Unit {
   let mut report_path = ""
   let mut svg_path = ""
   let mut markdown_path = ""
+  let mut calendar_path = ""
+  let mut date = ""
   let mut min_focus = 45
   let mut recovery = 10
   let mut required = 0
@@ -77,6 +79,8 @@ fn run() -> Unit {
       "--report" => report_path = value
       "--svg" => svg_path = value
       "--markdown" => markdown_path = value
+      "--ics" => calendar_path = value
+      "--date" => date = value
       "--min-focus" | "--recovery" | "--require-focus" =>
         match number(value) {
           None => {
@@ -116,6 +120,27 @@ fn run() -> Unit {
       }
     }
   }
+  let calendar = if calendar_path != "" {
+    if !paths_safe(input, calendar_path, report_path) ||
+      !paths_safe("", calendar_path, svg_path) ||
+      !paths_safe("", calendar_path, markdown_path) {
+      fail("Input and output paths must be different", 2)
+      return
+    }
+    match @core.calendar_from_text(text, min_focus, recovery, date) {
+      Ok(s) => s
+      Err(e) => {
+        fail(e, 2)
+        return
+      }
+    }
+  } else {
+    if date != "" {
+      fail("--date requires --ics", 2)
+      return
+    }
+    ""
+  }
   match @core.analyze_text(text, min_focus, recovery) {
     Err(message) => fail(message, 2)
     Ok(report) => {
@@ -137,6 +162,10 @@ fn run() -> Unit {
         }
       }
       println(report)
+      if calendar_path != "" && !write_file(calendar_path, calendar) {
+        fail("Cannot write calendar: " + calendar_path, 2)
+        return
+      }
       if markdown_path != "" {
         match @core.markdown_from_text(text, min_focus, recovery) {
           Err(e) => {
