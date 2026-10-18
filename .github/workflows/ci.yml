@@ -17,3 +17,5 @@ jobs:
       - run: moon test --target js --deny-warn
       - run: moon build --target js src/cmd/moonpocket
       - run: node --test tests/cli.integration.test.mjs
+      - name: Verify distribution archive in an isolated directory
+        run: node tests/package.integration.mjs
