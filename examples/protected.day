@@ -1,0 +1,6 @@
+# Use fixed for commitments that must stay in this day.
+day 09:00 18:00
+busy standup 09:30 10:00
+fixed lunch 12:00 13:00
+fixed exam 14:00 15:00
+busy review 15:30 16:00

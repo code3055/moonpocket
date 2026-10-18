@@ -3,6 +3,7 @@ struct Event {
   id : String
   start : Int
   end : Int
+  fixed : Bool
 } derive(ToJson)
 
 ///|
@@ -177,7 +178,7 @@ fn parse(text : String) -> Result[(Int, Int, Array[Event]), String] {
         }
         _ => return Err(error + "invalid HH:MM time")
       }
-    } else if row[0] == "busy" {
+    } else if row[0] == "busy" || row[0] == "fixed" {
       if row.length() != 4 {
         return Err(error + "expected busy ID START END")
       }
@@ -206,7 +207,12 @@ fn parse(text : String) -> Result[(Int, Int, Array[Event]), String] {
           if s >= e {
             return Err(error + "busy must have positive duration")
           }
-          events.push({ id: row[1], start: s, end: e, })
+          events.push({
+            id: row[1],
+            start: s,
+            end: e,
+            fixed: row[0] == "fixed",
+          })
           event_lines.push(i + 1)
         }
         _ => return Err(error + "invalid HH:MM time")
@@ -346,6 +352,9 @@ fn analyze(
       )
       let suggestions : Array[Suggestion] = []
       for event in events {
+        if event.fixed {
+          continue
+        }
         let (after, _) = calculate(
           start,
           end,
