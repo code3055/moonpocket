@@ -1,0 +1,6 @@
+import {
+  "local/moonpocket/core",
+  "moonbitlang/core/env",
+}
+
+pkgtype(kind: "executable")

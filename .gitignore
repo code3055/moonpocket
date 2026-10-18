@@ -1,0 +1,6 @@
+_build/
+target/
+.moon/
+.omx/
+node_modules/
+reports/

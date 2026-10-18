@@ -1,0 +1,35 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "local/moonpocket/core"
+
+// Values
+pub fn analyze_text(String, Int, Int) -> Result[String, String]
+
+pub fn svg_from_text(String, Int, Int) -> Result[String, String]
+
+// Errors
+
+// Types and methods
+type Day derive(ToJson)
+pub fn Day::to_json(Self) -> Json
+
+type Event derive(ToJson)
+pub fn Event::to_json(Self) -> Json
+
+type Pocket derive(ToJson)
+pub fn Pocket::to_json(Self) -> Json
+
+type Report derive(ToJson)
+pub fn Report::to_json(Self) -> Json
+
+type Settings derive(ToJson)
+pub fn Settings::to_json(Self) -> Json
+
+type Suggestion derive(ToJson)
+pub fn Suggestion::to_json(Self) -> Json
+
+type Summary derive(ToJson)
+pub fn Summary::to_json(Self) -> Json
+
+// Type aliases
+
+// Traits
