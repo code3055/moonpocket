@@ -10,7 +10,7 @@ jobs:
           node-version: '22'
       - name: Install MoonBit
         run: |
-          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s -- '0.10.14+7d59c7ec9'
           echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
       - run: moon fmt --check
       - run: moon check --target js --deny-warn
