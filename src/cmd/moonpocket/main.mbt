@@ -1,6 +1,6 @@
 ///|
 extern "js" fn read_file(path : String) -> String? =
-  #| function(path) { try { return require('node:fs').readFileSync(path, 'utf8'); } catch (_) { return undefined; } }
+  #| function(path) { try { return require('node:fs').readFileSync(path === '-' ? 0 : path, 'utf8'); } catch (_) { return undefined; } }
 
 ///|
 extern "js" fn write_file(path : String, content : String) -> Bool =
@@ -24,7 +24,7 @@ extern "js" fn paths_safe(
   #|   const fs = require('node:fs'), path = require('node:path');
   #|   try {
   #|     const canonical = p => { const absolute = path.resolve(p); const resolved = fs.existsSync(absolute) ? fs.realpathSync(absolute) : absolute; return process.platform === 'win32' ? resolved.toLowerCase() : resolved; };
-  #|     const paths = [input, report, svg].filter(p => p !== '').map(canonical);
+  #|     const paths = [input === '-' ? '' : input, report, svg].filter(p => p !== '').map(canonical);
   #|     return new Set(paths).size === paths.length;
   #|   } catch (_) { return false; }
   #| }

@@ -62,6 +62,13 @@ test('help is available without a snapshot', () => {
   assert.equal(result.status, 0);
   assert.match(result.stdout, /--require-focus/);
 });
+test('stdin accepts piped snapshots and rejects malformed piped input', () => {
+  const good = spawnSync(process.execPath, [cli, '--input', '-'], { encoding: 'utf8', input: 'day 09:00 10:00' });
+  assert.equal(good.status, 0, good.stderr);
+  assert.equal(JSON.parse(good.stdout).summary.focus_minutes, 60);
+  const bad = spawnSync(process.execPath, [cli, '--input', '-'], { encoding: 'utf8', input: 'invalid' });
+  assert.equal(bad.status, 2);
+});
 test('Markdown export contains usable focus windows and respects protected events', () => {
   const dir = mkdtempSync(join(tmpdir(), 'moonpocket-md-'));
   try {
