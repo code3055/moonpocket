@@ -432,7 +432,7 @@ pub fn svg_from_text(
         height.to_string() +
         "\" viewBox=\"0 0 960 " +
         height.to_string() +
-        "\"><rect width=\"100%\" height=\"100%\" fill=\"#101b2d\"/><g font-family=\"Arial,sans-serif\" fill=\"#edf3ff\"><text x=\"36\" y=\"44\" font-size=\"28\">MoonPocket / time reclaimed</text><text x=\"36\" y=\"76\" font-size=\"16\">" +
+        "\" role=\"img\" aria-labelledby=\"pocket-title pocket-desc\"><title id=\"pocket-title\">MoonPocket focus timeline</title><desc id=\"pocket-desc\">Focus, busy, short gaps and recovery intervals. Fixed appointments are marked in the list.</desc><rect width=\"100%\" height=\"100%\" fill=\"#101b2d\"/><g font-family=\"Arial,sans-serif\" fill=\"#edf3ff\"><text x=\"36\" y=\"44\" font-size=\"28\">MoonPocket / time reclaimed</text><text x=\"36\" y=\"76\" font-size=\"16\">" +
         report.day.start +
         " - " +
         report.day.end +
@@ -456,7 +456,13 @@ pub fn svg_from_text(
           w.to_string() +
           "\" height=\"48\" fill=\"" +
           color +
-          "\"/>"
+          "\"><title>" +
+          pocket.usable_start +
+          " - " +
+          pocket.end +
+          " / usable " +
+          pocket.usable_minutes.to_string() +
+          " min</title></rect>"
       }
       for event in report.events {
         let x = 36 + (event.start - start) * 888 / (end - start)
@@ -466,7 +472,35 @@ pub fn svg_from_text(
           x.to_string() +
           "\" y=\"106\" width=\"" +
           w.to_string() +
-          "\" height=\"48\" fill=\"#f6b56b\"/>"
+          "\" height=\"48\" fill=\"#f6b56b\"><title>" +
+          event.id +
+          " / " +
+          clock(event.start) +
+          " - " +
+          clock(event.end) +
+          "</title></rect>"
+      }
+      let step = if end - start <= 180 {
+        30
+      } else if end - start <= 720 {
+        60
+      } else {
+        120
+      }
+      let mut tick = (start + step - 1) / step * step
+      while tick <= end {
+        let x = 36 + (tick - start) * 888 / (end - start)
+        svg = svg +
+          "<line x1=\"" +
+          x.to_string() +
+          "\" x2=\"" +
+          x.to_string() +
+          "\" y1=\"96\" y2=\"154\" stroke=\"#101b2d\" stroke-opacity=\"0.35\"/><text x=\"" +
+          x.to_string() +
+          "\" y=\"100\" text-anchor=\"middle\" font-size=\"11\">" +
+          clock(tick) +
+          "</text>"
+        tick = tick + step
       }
       svg = svg +
         "<text x=\"36\" y=\"180\" font-size=\"13\">Green: focus | Orange: busy | Light grey: short gap | Dark grey: recovery</text>"
@@ -481,6 +515,7 @@ pub fn svg_from_text(
           clock(event.end) +
           " / " +
           event.id +
+          (if event.fixed { " [fixed]" } else { "" }) +
           "</text>"
         y = y + 26
       }
