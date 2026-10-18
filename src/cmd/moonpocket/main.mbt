@@ -54,6 +54,7 @@ fn run() -> Unit {
   let mut input = ""
   let mut report_path = ""
   let mut svg_path = ""
+  let mut markdown_path = ""
   let mut min_focus = 45
   let mut recovery = 10
   let mut required = 0
@@ -75,6 +76,7 @@ fn run() -> Unit {
       "--input" => input = value
       "--report" => report_path = value
       "--svg" => svg_path = value
+      "--markdown" => markdown_path = value
       "--min-focus" | "--recovery" | "--require-focus" =>
         match number(value) {
           None => {
@@ -97,7 +99,9 @@ fn run() -> Unit {
     }
     i = i + 2
   }
-  if !paths_safe(input, report_path, svg_path) {
+  if !paths_safe(input, report_path, svg_path) ||
+    !paths_safe(input, markdown_path, report_path) ||
+    !paths_safe("", markdown_path, svg_path) {
     fail("Input and output paths must be different", 2)
     return
   }
@@ -133,6 +137,19 @@ fn run() -> Unit {
         }
       }
       println(report)
+      if markdown_path != "" {
+        match @core.markdown_from_text(text, min_focus, recovery) {
+          Err(e) => {
+            fail(e, 2)
+            return
+          }
+          Ok(md) =>
+            if !write_file(markdown_path, md) {
+              fail("Cannot write Markdown: " + markdown_path, 2)
+              return
+            }
+        }
+      }
       if !meets_gate(report, required) {
         fail("Focus budget below --require-focus threshold", 1)
       }

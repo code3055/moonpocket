@@ -62,6 +62,18 @@ test('help is available without a snapshot', () => {
   assert.equal(result.status, 0);
   assert.match(result.stdout, /--require-focus/);
 });
+test('Markdown export contains usable focus windows and respects protected events', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'moonpocket-md-'));
+  try {
+    const output = join(dir, 'report.md');
+    const result = run('--input', 'examples/protected.day', '--markdown', output);
+    assert.equal(result.status, 0, result.stderr);
+    const report = readFileSync(output, 'utf8');
+    assert.match(report, /# MoonPocket focus report/);
+    assert.match(report, /Focus pockets/);
+    assert.equal(report.includes(String.fromCharCode(96) + 'exam' + String.fromCharCode(96)), false);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
 test('interval accounting agrees with an independent minute-by-minute oracle', () => {
   const dir = mkdtempSync(join(tmpdir(), 'moonpocket-oracle-'));
   const time = n => `${String(Math.floor(n / 60)).padStart(2, '0')}:${String(n % 60).padStart(2, '0')}`;
