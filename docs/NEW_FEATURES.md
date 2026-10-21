@@ -29,6 +29,30 @@ Markdown 列出可用专注时段和移除收益，可放入笔记或代码评�
 Get-Content examples/protected.day -Raw | node _build/js/debug/build/cmd/moonpocket/moonpocket.js --input -
 ```
 
+## 精确求解模式
+
+`--mode plan --tasks tasks.txt` 会在当天的可用窗口中安排任务。任务行格式为：
+
+```text
+task write 30 09:00 12:00 5 deep
+task email 20 10:00 12:00 2 shallow
+after email write
+```
+
+任务有释放时间、截止时间、价值和上下文；`after CHILD PARENT` 声明依赖。求解器用 `mask,last` 动态规划保留每个已选任务集合和最后上下文的最早结束状态，目标依次为总价值、完成数量和较早结束时间。最多 14 个任务，返回排程、未排原因、状态数量和转移数量。
+
+```powershell
+node _build/js/debug/build/cmd/moonpocket/moonpocket.js --input examples/quiet.day --mode plan --tasks tasks.txt --switch 5
+```
+
+`--mode reclaim` 则在预算内联合移除可移动 `busy` 安排；`fixed` 永远保留。可选成本文件使用 `cost EVENT_ID POSITIVE_INT`，最多 16 个可移动安排，完整枚举所有子集并输出每个未被支配的成本-专注时间点：
+
+```powershell
+node _build/js/debug/build/cmd/moonpocket/moonpocket.js --input examples/protected.day --mode reclaim --target 180 --budget 5 --costs costs.txt
+```
+
+这两个模式的上限是精确性和可审计性的边界，不是对任意规模排程的承诺。算法细节和复杂度见 [联合回收算法说明](RECLAIM_ALGORITHM.md)。
+
 ## 验证发布包
 
 ```powershell

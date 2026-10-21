@@ -25,9 +25,10 @@ try {
   command(moon, ['test', '--target', 'js', '--deny-warn'], dir);
   command(moon, ['build', '--target', 'js', 'src/cmd/moonpocket'], dir);
   command(process.execPath, ['--test', 'tests/cli.integration.test.mjs'], dir);
+  command(process.execPath, ['--test', 'tests/solver.integration.test.mjs'], dir);
   const cli = join(dir, '_build/js/debug/build/cmd/moonpocket/moonpocket.js');
   const json = JSON.parse(command(process.execPath, [cli, '--input', 'examples/protected.day'], dir));
   assert.equal(json.summary.focus_minutes, 270);
   assert.ok(json.events.some(e => e.id === 'exam' && e.fixed));
-  console.log('Distribution archive: isolated check, 14 core tests, 11 CLI tests and protected-day example passed.');
+  console.log('Distribution archive: isolated check, 26 core tests, 13 CLI tests, 2 solver tests and protected-day example passed.');
 } finally { rmSync(dir, { recursive: true, force: true }); }

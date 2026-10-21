@@ -6,19 +6,6 @@
 
 ## 快速体验
 
-先安装 [MoonBit 官方工具链](https://www.moonbitlang.com/download/)（moonc 至少 v0.10.14）和 [Node.js](https://nodejs.org/)（建议 22 或更新版本），然后获取项目：
-
-```bash
-git clone https://github.com/code3055/moonpocket.git
-cd moonpocket
-moon check --target js --deny-warn
-moon test --target js --deny-warn
-moon build --target js src/cmd/moonpocket
-node _build/js/debug/build/cmd/moonpocket/moonpocket.js --input examples/fragmented.day --report examples/fragmented-report.json --svg examples/fragmented.svg
-```
-
-以上适用于工具链已加入 PATH 的 Windows、Linux 或 macOS。
-
 当前工作区已有工具链：
 
 ```powershell
@@ -32,6 +19,10 @@ node _build/js/debug/build/cmd/moonpocket/moonpocket.js --input examples/fragmen
 已生成的示例：[碎片日程报告](examples/fragmented-report.json)、[碎片日程时间轴](examples/fragmented.svg)、[安静日程时间轴](examples/quiet.svg)。默认门槛 45 分钟、恢复 10 分钟时，碎片日程有 345 分钟空闲，但只有 130 分钟专注时间；把 30 分钟 review 挪到当天之外，专注时间增加 110 分钟。
 
 ## 输入格式
+
+新增 `fixed` 保护不可移动安排，支持 BOM 与行尾注释；还可使用 `--markdown` 输出笔记报告、`--ics` 和 `--date` 输出专注时段日历，以及 `--input -` 读取管道输入。完整命令和时间解释见 [功能补充说明](docs/NEW_FEATURES.md)。
+
+在同一个 CLI 中还提供两个精确求解模式：`--mode plan` 用带依赖、释放时间、截止时间、上下文切换成本的子集动态规划安排任务；`--mode reclaim` 在预算内联合移除可移动安排，输出最优方案和成本-专注时间前沿。两者均输出可复核 JSON，适合把日程快照放进 CI 或评审流程。
 
 ```text
 # 支持空行与整行注释；安排可乱序，也可重叠
@@ -55,14 +46,17 @@ JSON 中 `free_minutes` 为原始空闲分钟，`focus_minutes` 为达到门槛�
 
 ## 命令行
 
-| 参数 | 作用 | 默认 |
-| --- | --- | --- |
-| `--input <file>` | 文本日程快照 | 内置碎片日程 |
-| `--report <file>` | 保存 JSON，同时 stdout 输出 JSON | 不保存 |
-| `--svg <file>` | 保存独立 SVG 时间轴 | 不保存 |
-| `--min-focus <n>` | 专注时段最短分钟数，1—1440 | 45 |
-| `--recovery <n>` | 忙碌后恢复分钟数，0—1440 | 10 |
-| `--require-focus <n>` | 专注预算门槛，0—1440 | 0 |
+| 参数                    | 作用                        | 默认     |
+| --------------------- | ------------------------- | ------ |
+| `--input <file>`      | 文本日程快照                    | 内置碎片日程 |
+| `--report <file>`     | 保存 JSON，同时 stdout 输出 JSON | 不保存    |
+| `--svg <file>`        | 保存独立 SVG 时间轴              | 不保存    |
+| `--min-focus <n>`     | 专注时段最短分钟数，1—1440          | 45     |
+| `--recovery <n>`      | 忙碌后恢复分钟数，0—1440           | 10     |
+| `--require-focus <n>` | 专注预算门槛，0—1440             | 0      |
+| `--mode plan` | 任务排程求解，需配 `--tasks <file>` | `audit` |
+| `--mode reclaim` | 预算内联合移除求解，可配 `--costs`、`--target`、`--budget` | `audit` |
+| `--switch <n>` | 排程中不同上下文之间的切换分钟数 | 0 |
 
 退出码：`0` 完成并达到预算；`1` 完成但未达到预算；`2` 参数、输入或读写错误。输出目录需要预先存在。示例：在 CI 中使用 `--require-focus 180` 检查团队约定的日程快照。工具不自动改动任何日程。
 
@@ -75,7 +69,9 @@ match @core.analyze_text("day 09:00 18:00\nbusy lunch 12:00 13:00", 45, 10) {
 }
 ```
 
-使用 API 的包名为 `code3055/moonpocket/core`。`@core.svg_from_text(text, min_focus, recovery)` 返回 `Result[String, String]`，可单独生成时间轴。核心不含文件读写或全局状态。同样的输入和参数产生相同输出。
+`@core.svg_from_text(text, min_focus, recovery)` 返回 `Result[String, String]`，可单独生成时间轴。核心不含文件读写或全局状态。同样的输入和参数产生相同输出。
+
+类型化求解 API 为 `@core.plan_schedule(day, tasks, recovery, switch_minutes)` 和 `@core.reclaim_schedule(day, min_focus, recovery, target, budget, costs)`；字符串包装 API 分别为 `plan_from_text` 和 `reclaim_from_text`。排程最多 14 个任务，联合移除最多 16 个可移动安排，这是为了保留精确解和可解释的穷举证明。
 
 ## 验证
 
@@ -86,11 +82,8 @@ $env:MOON_HOME = 'E:\moonbit\moonbit-cli'
 & "$env:MOON_HOME/bin/moon.exe" test --target js --deny-warn
 & "$env:MOON_HOME/bin/moon.exe" build --target js src/cmd/moonpocket
 node --test tests/cli.integration.test.mjs
+node --test tests/solver.integration.test.mjs
 ```
-
-## 发布到 Mooncakes
-
-模块配置为 `code3055/moonpocket`。请使用 Mooncakes 用户名 `code3055` 登录；首次使用先运行 `moon register`，已有账号运行 `moon login`。登录成功后，在项目根目录依次运行 `moon package --list`、`moon publish --dry-run` 检查打包文件和远端预检，最后运行 `moon publish` 发布 `0.1.0`。本地预检收到 `202 Accepted: Dry run completed successfully`，且明确没有写入远端；当前工具链在显示该成功消息后仍可能以退出码 1 结束，因此请以服务器返回的具体消息判断预检结果。发布后检查 `https://mooncakes.io/code3055/moonpocket`。版本号一旦发布不能重复发布；后续更新需先在 `moon.mod` 增加版本号。详见 [官方发布指南](https://docs.moonbitlang.com/en/latest/toolchain/moon/package-manage-tour.html)。
 
 ## 参考项目浅析
 
@@ -99,5 +92,3 @@ node --test tests/cli.integration.test.mjs
 MoonPocket 借鉴的是“纯计算库 → 可审阅文本快照 → 机器报告与可视化 → CLI 质量门槛 → 测试和示例”这套模式。新工具的内容是日程碎片与专注时间回收；不包含图布局检查，也未复制参考项目代码。详见 [项目设计说明](docs/DESIGN.md)。
 
 MIT License.
-
-
