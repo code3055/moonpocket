@@ -2,37 +2,165 @@
 package "code3055/moonpocket/core"
 
 // Values
+pub fn analyze_schedule(String, Int, Int) -> Result[Report, String]
+
 pub fn analyze_text(String, Int, Int) -> Result[String, String]
 
 pub fn calendar_from_text(String, Int, Int, String) -> Result[String, String]
 
+pub fn compare_schedules(String, String, Int, Int) -> Result[AnalysisDelta, String]
+
 pub fn markdown_from_text(String, Int, Int) -> Result[String, String]
+
+pub fn plan_from_text(String, String, Int, Int) -> Result[String, String]
+
+pub fn plan_schedule(String, String, Int, Int) -> Result[TaskPlan, String]
+
+pub fn reclaim_from_text(String, Int, Int, Int, Int, String) -> Result[String, String]
+
+pub fn reclaim_schedule(String, Int, Int, Int, Int, String) -> Result[ReclaimReport, String]
 
 pub fn svg_from_text(String, Int, Int) -> Result[String, String]
 
 // Errors
 
 // Types and methods
-type Day derive(ToJson)
+pub(all) struct AnalysisDelta {
+  before_focus : Int
+  after_focus : Int
+  focus_delta : Int
+  before_free : Int
+  after_free : Int
+  free_delta : Int
+  before_busy : Int
+  after_busy : Int
+  busy_delta : Int
+  changed_event_count : Int
+} derive(ToJson)
+pub fn AnalysisDelta::to_json(Self) -> Json
+
+pub(all) struct Assignment {
+  task_id : String
+  start : String
+  end : String
+  value : Int
+  context : String
+} derive(ToJson)
+pub fn Assignment::to_json(Self) -> Json
+
+pub(all) struct Day {
+  start : String
+  end : String
+} derive(ToJson)
 pub fn Day::to_json(Self) -> Json
 
-type Event derive(ToJson)
+pub(all) struct Event {
+  id : String
+  start : Int
+  end : Int
+  fixed : Bool
+} derive(ToJson)
 pub fn Event::to_json(Self) -> Json
 
-type Pocket derive(ToJson)
+type PlanTask derive(ToJson)
+pub fn PlanTask::to_json(Self) -> Json
+
+pub(all) struct Pocket {
+  start : String
+  end : String
+  usable_start : String
+  usable_minutes : Int
+  focus : Bool
+} derive(ToJson)
 pub fn Pocket::to_json(Self) -> Json
 
-type Report derive(ToJson)
+pub(all) struct ReclaimDiagnostics {
+  movable_events : Int
+  total_subsets : Int
+  evaluated_subsets : Int
+  budget_pruned_subsets : Int
+  algorithm : String
+  reason : String
+} derive(ToJson)
+pub fn ReclaimDiagnostics::to_json(Self) -> Json
+
+pub(all) struct ReclaimPlan {
+  cost : Int
+  removed_ids : Array[String]
+  focus_minutes : Int
+  largest_focus : Int
+} derive(ToJson)
+pub fn ReclaimPlan::to_json(Self) -> Json
+
+pub(all) struct ReclaimReport {
+  schema_version : Int
+  status : String
+  optimal : Bool
+  target_minutes : Int
+  budget : Int
+  baseline_focus : Int
+  best_focus_under_budget : Int
+  target_shortfall_minutes : Int
+  solution : ReclaimPlan?
+  frontier : Array[ReclaimPlan]
+  diagnostics : ReclaimDiagnostics
+} derive(ToJson)
+pub fn ReclaimReport::to_json(Self) -> Json
+
+pub(all) struct Report {
+  tool : String
+  day : Day
+  settings : Settings
+  summary : Summary
+  pockets : Array[Pocket]
+  events : Array[Event]
+  suggestions : Array[Suggestion]
+} derive(ToJson)
 pub fn Report::to_json(Self) -> Json
 
-type Settings derive(ToJson)
+pub(all) struct Settings {
+  min_focus : Int
+  recovery : Int
+} derive(ToJson)
 pub fn Settings::to_json(Self) -> Json
 
-type Suggestion derive(ToJson)
+pub(all) struct Suggestion {
+  event_id : String
+  gain_minutes : Int
+  largest_focus : Int
+} derive(ToJson)
 pub fn Suggestion::to_json(Self) -> Json
 
-type Summary derive(ToJson)
+pub(all) struct Summary {
+  busy_minutes : Int
+  free_minutes : Int
+  focus_minutes : Int
+  fragment_minutes : Int
+  largest_focus : Int
+  focus_count : Int
+} derive(ToJson)
 pub fn Summary::to_json(Self) -> Json
+
+pub(all) struct TaskPlan {
+  schema_version : Int
+  algorithm : String
+  optimal : Bool
+  objective : String
+  total_value : Int
+  scheduled_count : Int
+  switch_minutes : Int
+  states_reached : Int
+  transitions_considered : Int
+  assignments : Array[Assignment]
+  unscheduled : Array[Unscheduled]
+} derive(ToJson)
+pub fn TaskPlan::to_json(Self) -> Json
+
+pub(all) struct Unscheduled {
+  task_id : String
+  reason : String
+} derive(ToJson)
+pub fn Unscheduled::to_json(Self) -> Json
 
 // Type aliases
 

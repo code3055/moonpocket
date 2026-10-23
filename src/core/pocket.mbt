@@ -1,5 +1,5 @@
 ///|
-struct Event {
+pub(all) struct Event {
   id : String
   start : Int
   end : Int
@@ -7,7 +7,7 @@ struct Event {
 } derive(ToJson)
 
 ///|
-struct Pocket {
+pub(all) struct Pocket {
   start : String
   end : String
   usable_start : String
@@ -16,7 +16,7 @@ struct Pocket {
 } derive(ToJson)
 
 ///|
-struct Summary {
+pub(all) struct Summary {
   busy_minutes : Int
   free_minutes : Int
   focus_minutes : Int
@@ -26,26 +26,26 @@ struct Summary {
 } derive(ToJson)
 
 ///|
-struct Suggestion {
+pub(all) struct Suggestion {
   event_id : String
   gain_minutes : Int
   largest_focus : Int
 } derive(ToJson)
 
 ///|
-struct Day {
+pub(all) struct Day {
   start : String
   end : String
 } derive(ToJson)
 
 ///|
-struct Settings {
+pub(all) struct Settings {
   min_focus : Int
   recovery : Int
 } derive(ToJson)
 
 ///|
-struct Report {
+pub(all) struct Report {
   tool : String
   day : Day
   settings : Settings
@@ -63,6 +63,21 @@ fn pad(n : Int) -> String {
     n.to_string()
   }
 }
+
+///|
+/// A machine-readable comparison between two schedule revisions.
+pub(all) struct AnalysisDelta {
+  before_focus : Int
+  after_focus : Int
+  focus_delta : Int
+  before_free : Int
+  after_free : Int
+  free_delta : Int
+  before_busy : Int
+  after_busy : Int
+  busy_delta : Int
+  changed_event_count : Int
+} derive(ToJson)
 
 ///|
 fn clock(n : Int) -> String {
@@ -415,6 +430,74 @@ pub fn analyze_text(
 }
 
 ///|
+/// Typed entry point for library consumers. The JSON wrapper is optional.
+pub fn analyze_schedule(
+  text : String,
+  min_focus : Int,
+  recovery : Int,
+) -> Result[Report, String] {
+  analyze(text, min_focus, recovery)
+}
+
+///|
+/// Compare two revisions without requiring callers to decode JSON.
+pub fn compare_schedules(
+  before : String,
+  after : String,
+  min_focus : Int,
+  recovery : Int,
+) -> Result[AnalysisDelta, String] {
+  match
+    (analyze(before, min_focus, recovery), analyze(after, min_focus, recovery)) {
+    (Err(e), _) => Err("before: " + e)
+    (_, Err(e)) => Err("after: " + e)
+    (Ok(a), Ok(b)) => {
+      let mut changed = 0
+      for event in a.events {
+        let mut found = false
+        for other in b.events {
+          if event.id == other.id &&
+            event.start == other.start &&
+            event.end == other.end &&
+            event.fixed == other.fixed {
+            found = true
+          }
+        }
+        if !found {
+          changed = changed + 1
+        }
+      }
+      for event in b.events {
+        let mut found = false
+        for other in a.events {
+          if event.id == other.id &&
+            event.start == other.start &&
+            event.end == other.end &&
+            event.fixed == other.fixed {
+            found = true
+          }
+        }
+        if !found {
+          changed = changed + 1
+        }
+      }
+      Ok({
+        before_focus: a.summary.focus_minutes,
+        after_focus: b.summary.focus_minutes,
+        focus_delta: b.summary.focus_minutes - a.summary.focus_minutes,
+        before_free: a.summary.free_minutes,
+        after_free: b.summary.free_minutes,
+        free_delta: b.summary.free_minutes - a.summary.free_minutes,
+        before_busy: a.summary.busy_minutes,
+        after_busy: b.summary.busy_minutes,
+        busy_delta: b.summary.busy_minutes - a.summary.busy_minutes,
+        changed_event_count: changed,
+      })
+    }
+  }
+}
+
+///|
 pub fn svg_from_text(
   text : String,
   min_focus : Int,
@@ -556,3 +639,6 @@ pub extend Settings with ToJson::{to_json}
 
 ///|
 pub extend Report with ToJson::{to_json}
+
+///|
+pub extend AnalysisDelta with ToJson::{to_json}

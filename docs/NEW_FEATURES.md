@@ -53,6 +53,10 @@ node _build/js/debug/build/cmd/moonpocket/moonpocket.js --input examples/protect
 
 这两个模式的上限是精确性和可审计性的边界，不是对任意规模排程的承诺。算法细节和复杂度见 [联合回收算法说明](RECLAIM_ALGORITHM.md)。
 
+## 作为 MoonBit 库使用
+
+模块同时提供类型化 API。`analyze_schedule` 返回 `Report`，`compare_schedules` 返回 `AnalysisDelta`，适合编辑器、机器人或其他 MoonBit 工具在内存中复用；不必启动 CLI，也不必解析 JSON。`examples/library-consumer.mbt` 展示了最小的版本对比调用。发布包版本为 `0.2.0`，接口变更和算法上限会记录在模块版本中。
+
 ## 验证发布包
 
 ```powershell

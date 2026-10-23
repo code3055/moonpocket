@@ -102,3 +102,15 @@ test "comments whitespace midnight and deterministic outputs" {
     _ => fail("valid snapshot rejected")
   }
 }
+
+///|
+test "typed API compares schedule revisions without JSON decoding" {
+  let before = "day 09:00 12:00\nbusy review 10:00 10:30"
+  let after = "day 09:00 12:00\nbusy review 10:30 11:00"
+  let report = analyze_schedule(before, 30, 0).unwrap()
+  assert_eq(report.summary.focus_minutes, 150)
+  let delta = compare_schedules(before, after, 30, 0).unwrap()
+  assert_eq(delta.changed_event_count, 2)
+  assert_eq(delta.focus_delta, 0)
+  assert_eq(delta.busy_delta, 0)
+}

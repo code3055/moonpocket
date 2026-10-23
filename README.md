@@ -71,7 +71,7 @@ match @core.analyze_text("day 09:00 18:00\nbusy lunch 12:00 13:00", 45, 10) {
 
 `@core.svg_from_text(text, min_focus, recovery)` 返回 `Result[String, String]`，可单独生成时间轴。核心不含文件读写或全局状态。同样的输入和参数产生相同输出。
 
-类型化求解 API 为 `@core.plan_schedule(day, tasks, recovery, switch_minutes)` 和 `@core.reclaim_schedule(day, min_focus, recovery, target, budget, costs)`；字符串包装 API 分别为 `plan_from_text` 和 `reclaim_from_text`。排程最多 14 个任务，联合移除最多 16 个可移动安排，这是为了保留精确解和可解释的穷举证明。
+类型化 API 包括 `@core.analyze_schedule`、`@core.compare_schedules`、`@core.plan_schedule(day, tasks, recovery, switch_minutes)` 和 `@core.reclaim_schedule(day, min_focus, recovery, target, budget, costs)`；字符串包装 API 分别为 `analyze_text`、`plan_from_text` 和 `reclaim_from_text`。`compare_schedules` 直接返回两个版本的忙碌、空闲和专注变化，不需要调用方解析 JSON。最小库消费者示例见 [library-consumer.mbt](examples/library-consumer.mbt)。排程最多 14 个任务，联合移除最多 16 个可移动安排，这是为了保留精确解和可解释的穷举证明。
 
 ## 验证
 

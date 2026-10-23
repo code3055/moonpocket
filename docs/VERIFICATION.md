@@ -4,7 +4,7 @@
 
 - moon fmt --check：通过。
 - moon check --target js --deny-warn：通过，零警告。
-- moon test --target js --deny-warn：26 项核心测试通过。
+- moon test --target js --deny-warn：27 项核心测试通过。
 - moon build --target js src/cmd/moonpocket：通过。
 - node --test tests/cli.integration.test.mjs：11 项通过，其中独立逐分钟 oracle 验证 24 组随机日程及每条移除建议。
 - node --test tests/solver.integration.test.mjs：2 项通过，独立排列 oracle 验证 48 组任务排程，另验证联合回收预算和不可行退出码。

@@ -15,7 +15,7 @@ function command(executable, args, cwd = process.cwd()) {
 }
 command(moon, ['package']);
 const archiveDir = resolve('_build/publish');
-const archive = join(archiveDir, 'code3055-moonpocket-0.1.0.zip');
+const archive = join(archiveDir, 'code3055-moonpocket-0.2.0.zip');
 assert.ok(readdirSync(archiveDir).includes('code3055-moonpocket-0.1.0.zip'));
 const dir = mkdtempSync(join(tmpdir(), 'moonpocket-package-'));
 try {
@@ -30,5 +30,5 @@ try {
   const json = JSON.parse(command(process.execPath, [cli, '--input', 'examples/protected.day'], dir));
   assert.equal(json.summary.focus_minutes, 270);
   assert.ok(json.events.some(e => e.id === 'exam' && e.fixed));
-  console.log('Distribution archive: isolated check, 26 core tests, 13 CLI tests, 2 solver tests and protected-day example passed.');
+  console.log('Distribution archive: isolated check, 27 core tests, 13 CLI tests, 2 solver tests and protected-day example passed.');
 } finally { rmSync(dir, { recursive: true, force: true }); }
