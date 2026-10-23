@@ -15,7 +15,7 @@ function command(executable, args, cwd = process.cwd()) {
 }
 command(moon, ['package']);
 const archiveDir = resolve('_build/publish');
-const archive = join(archiveDir, 'code3055-moonpocket-0.2.0.zip');
+const archive = join(archiveDir, 'code3055-moonpocket-0.2.1.zip');
 assert.ok(readdirSync(archiveDir).includes('code3055-moonpocket-0.1.0.zip'));
 const dir = mkdtempSync(join(tmpdir(), 'moonpocket-package-'));
 try {

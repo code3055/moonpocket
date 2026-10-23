@@ -1,6 +1,6 @@
 # MoonPocket consumer example
 
-This is a separate MoonBit module that depends on `code3055/moonpocket` `0.2.0`.
+This is a separate MoonBit module that depends on `code3055/moonpocket` `0.2.1`.
 
 ```powershell
 moon install

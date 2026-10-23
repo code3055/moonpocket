@@ -55,7 +55,7 @@ node _build/js/debug/build/cmd/moonpocket/moonpocket.js --input examples/protect
 
 ## 作为 MoonBit 库使用
 
-模块同时提供类型化 API。`analyze_schedule` 返回 `Report`，`compare_schedules` 返回 `AnalysisDelta`，适合编辑器、机器人或其他 MoonBit 工具在内存中复用；不必启动 CLI，也不必解析 JSON。`examples/library-consumer.mbt` 展示了最小的版本对比调用。发布包版本为 `0.2.0`，接口变更和算法上限会记录在模块版本中。
+模块同时提供类型化 API。`analyze_schedule` 返回 `Report`，`compare_schedules` 返回 `AnalysisDelta`，适合编辑器、机器人或其他 MoonBit 工具在内存中复用；不必启动 CLI，也不必解析 JSON。`examples/library-consumer.mbt` 展示了最小的版本对比调用。当前发布包版本为 `0.2.1`，接口变更和算法上限会记录在模块版本中。
 
 ## 多日、资源和目标策略
 
