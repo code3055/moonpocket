@@ -8,6 +8,7 @@
 - moon build --target js src/cmd/moonpocket：通过。
 - node --test tests/cli.integration.test.mjs：11 项通过，其中独立逐分钟 oracle 验证 24 组随机日程及每条移除建议。
 - node --test tests/solver.integration.test.mjs：2 项通过，独立排列 oracle 验证 48 组任务排程，另验证联合回收预算和不可行退出码。
+- node tests/benchmark.mjs：12 任务排程规模基准可运行并输出平均耗时 JSON。
 - moon info：通过，公开 API 文件已生成。
 - moonpocket.ps1 --input examples/quiet.day --require-focus 400：通过，返回 470 专注分钟。
 - 两份示例报告与 SVG：实际通过 CLI 生成，SVG XML 解析通过；碎片示例另经本地 Edge 无界面渲染，截图为 examples/fragmented-preview.png。

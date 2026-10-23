@@ -30,5 +30,5 @@ try {
   const json = JSON.parse(command(process.execPath, [cli, '--input', 'examples/protected.day'], dir));
   assert.equal(json.summary.focus_minutes, 270);
   assert.ok(json.events.some(e => e.id === 'exam' && e.fixed));
-  console.log('Distribution archive: isolated check, 27 core tests, 13 CLI tests, 2 solver tests and protected-day example passed.');
+  console.log('Distribution archive: isolated check, 33 core tests, 13 CLI tests, 2 solver tests and protected-day example passed.');
 } finally { rmSync(dir, { recursive: true, force: true }); }

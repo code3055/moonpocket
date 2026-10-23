@@ -1,6 +1,7 @@
 _build/
 target/
 .moon/
+.mooncakes/
 .omx/
 node_modules/
 reports/

@@ -79,6 +79,10 @@ task note 30 09:00 11:00 3 writing
 
 CLI 使用 `--strategy value|count|finish` 选择目标。资源约束和策略是求解器输入的一部分，报告会保留目标、状态数和未排原因。
 
+并发任务使用库 API `parallel_schedule(day, tasks, capacities, recovery)`，容量文件示例为 `capacity gpu 2`；它允许同一资源在容量范围内重叠，并返回每个任务的资源和时间。`expand_dated_recurrence` 在周期展开之上增加 `YYYY-MM-DD` 起始日期、`-840..840` 分钟固定 UTC 偏移和例外日期数组。
+
+`tests/benchmark.mjs` 是可重复的本地规模基准，当前测量 12 个任务、20 次运行的平均 CLI 排程耗时；它不是功能测试，输出 JSON 便于在不同 MoonBit/Node 版本间比较。
+
 ## 验证发布包
 
 ```powershell

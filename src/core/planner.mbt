@@ -41,6 +41,32 @@ pub(all) struct TaskPlan {
 } derive(ToJson)
 
 ///|
+/// Named objective policy shared by library and CLI integrations.
+pub(all) struct PlanStrategy {
+  name : String
+} derive(ToJson)
+
+///|
+pub fn value_first_strategy() -> PlanStrategy {
+  { name: "value", }
+}
+
+///|
+pub fn count_first_strategy() -> PlanStrategy {
+  { name: "count", }
+}
+
+///|
+pub fn earliest_finish_strategy() -> PlanStrategy {
+  { name: "finish", }
+}
+
+///|
+pub fn plan_strategy_name(strategy : PlanStrategy) -> String {
+  strategy.name
+}
+
+///|
 pub extend PlanTask with ToJson::{to_json}
 
 ///|
@@ -51,6 +77,9 @@ pub extend Unscheduled with ToJson::{to_json}
 
 ///|
 pub extend TaskPlan with ToJson::{to_json}
+
+///|
+pub extend PlanStrategy with ToJson::{to_json}
 
 ///|
 fn plan_integer(text : String, maximum : Int) -> Int? {
@@ -519,6 +548,23 @@ pub fn plan_schedule_with_strategy(
         }
       }
   }
+}
+
+///|
+pub fn plan_schedule_with_policy(
+  day_text : String,
+  task_text : String,
+  recovery : Int,
+  switch_minutes : Int,
+  strategy : PlanStrategy,
+) -> Result[TaskPlan, String] {
+  plan_schedule_with_strategy(
+    day_text,
+    task_text,
+    recovery,
+    switch_minutes,
+    strategy.name,
+  )
 }
 
 ///|

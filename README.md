@@ -75,6 +75,8 @@ match @core.analyze_text("day 09:00 18:00\nbusy lunch 12:00 13:00", 45, 10) {
 
 排程任务可以追加资源名，例如 `task render 30 09:00 11:00 8 batch gpu`，并在任务文件中声明 `resource gpu 09:00 10:00`。任务必须同时满足专注窗口和资源窗口。`plan_schedule_with_strategy` 支持 `value`、`count`、`finish` 三种目标策略；周期日程可用 `expand_recurrence` 将重复规则展开为多个独立日快照，最多 366 天。
 
+并发场景使用 `parallel_schedule`，通过 `capacity RESOURCE N` 限制同一资源的重叠任务数量；日期 API `expand_dated_recurrence` 增加 ISO 日期、固定 UTC 偏移和例外日期。独立依赖示例在 [examples/consumer](examples/consumer)，规模基准为 `node tests/benchmark.mjs`。
+
 ## 验证
 
 ```powershell

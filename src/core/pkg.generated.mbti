@@ -10,9 +10,17 @@ pub fn calendar_from_text(String, Int, Int, String) -> Result[String, String]
 
 pub fn compare_schedules(String, String, Int, Int) -> Result[AnalysisDelta, String]
 
+pub fn count_first_strategy() -> PlanStrategy
+
+pub fn earliest_finish_strategy() -> PlanStrategy
+
+pub fn expand_dated_recurrence(String, String, Int, Int, Array[String]) -> Result[Array[DatedDay], String]
+
 pub fn expand_recurrence(String, Int) -> Result[Array[ExpandedDay], String]
 
 pub fn markdown_from_text(String, Int, Int) -> Result[String, String]
+
+pub fn parallel_schedule(String, String, String, Int) -> Result[ParallelPlan, String]
 
 pub fn plan_from_text(String, String, Int, Int) -> Result[String, String]
 
@@ -20,13 +28,19 @@ pub fn plan_from_text_with_strategy(String, String, Int, Int, String) -> Result[
 
 pub fn plan_schedule(String, String, Int, Int) -> Result[TaskPlan, String]
 
+pub fn plan_schedule_with_policy(String, String, Int, Int, PlanStrategy) -> Result[TaskPlan, String]
+
 pub fn plan_schedule_with_strategy(String, String, Int, Int, String) -> Result[TaskPlan, String]
+
+pub fn plan_strategy_name(PlanStrategy) -> String
 
 pub fn reclaim_from_text(String, Int, Int, Int, Int, String) -> Result[String, String]
 
 pub fn reclaim_schedule(String, Int, Int, Int, Int, String) -> Result[ReclaimReport, String]
 
 pub fn svg_from_text(String, Int, Int) -> Result[String, String]
+
+pub fn value_first_strategy() -> PlanStrategy
 
 // Errors
 
@@ -54,6 +68,15 @@ pub(all) struct Assignment {
 } derive(ToJson)
 pub fn Assignment::to_json(Self) -> Json
 
+pub(all) struct DatedDay {
+  date : String
+  utc_date : String
+  timezone_minutes : Int
+  skipped : Bool
+  text : String
+} derive(ToJson)
+pub fn DatedDay::to_json(Self) -> Json
+
 pub(all) struct Day {
   start : String
   end : String
@@ -74,6 +97,30 @@ pub(all) struct ExpandedDay {
   event_count : Int
 } derive(ToJson)
 pub fn ExpandedDay::to_json(Self) -> Json
+
+pub(all) struct ParallelAssignment {
+  task_id : String
+  start : String
+  end : String
+  resource : String
+  value : Int
+} derive(ToJson)
+pub fn ParallelAssignment::to_json(Self) -> Json
+
+pub(all) struct ParallelPlan {
+  algorithm : String
+  scheduled_count : Int
+  total_value : Int
+  capacity_constraints : Int
+  assignments : Array[ParallelAssignment]
+  unscheduled : Array[Unscheduled]
+} derive(ToJson)
+pub fn ParallelPlan::to_json(Self) -> Json
+
+pub(all) struct PlanStrategy {
+  name : String
+} derive(ToJson)
+pub fn PlanStrategy::to_json(Self) -> Json
 
 type PlanTask derive(ToJson)
 pub fn PlanTask::to_json(Self) -> Json

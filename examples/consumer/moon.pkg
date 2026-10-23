@@ -1,0 +1,4 @@
+import {
+  "code3055/moonpocket/core",
+}
+pkgtype(kind: "executable")
