@@ -10,11 +10,17 @@ pub fn calendar_from_text(String, Int, Int, String) -> Result[String, String]
 
 pub fn compare_schedules(String, String, Int, Int) -> Result[AnalysisDelta, String]
 
+pub fn expand_recurrence(String, Int) -> Result[Array[ExpandedDay], String]
+
 pub fn markdown_from_text(String, Int, Int) -> Result[String, String]
 
 pub fn plan_from_text(String, String, Int, Int) -> Result[String, String]
 
+pub fn plan_from_text_with_strategy(String, String, Int, Int, String) -> Result[String, String]
+
 pub fn plan_schedule(String, String, Int, Int) -> Result[TaskPlan, String]
+
+pub fn plan_schedule_with_strategy(String, String, Int, Int, String) -> Result[TaskPlan, String]
 
 pub fn reclaim_from_text(String, Int, Int, Int, Int, String) -> Result[String, String]
 
@@ -62,6 +68,13 @@ pub(all) struct Event {
 } derive(ToJson)
 pub fn Event::to_json(Self) -> Json
 
+pub(all) struct ExpandedDay {
+  day_index : Int
+  text : String
+  event_count : Int
+} derive(ToJson)
+pub fn ExpandedDay::to_json(Self) -> Json
+
 type PlanTask derive(ToJson)
 pub fn PlanTask::to_json(Self) -> Json
 
@@ -106,6 +119,16 @@ pub(all) struct ReclaimReport {
   diagnostics : ReclaimDiagnostics
 } derive(ToJson)
 pub fn ReclaimReport::to_json(Self) -> Json
+
+pub(all) struct RecurringEvent {
+  day : Int
+  period : Int
+  kind : String
+  id : String
+  start : String
+  end : String
+} derive(ToJson)
+pub fn RecurringEvent::to_json(Self) -> Json
 
 pub(all) struct Report {
   tool : String

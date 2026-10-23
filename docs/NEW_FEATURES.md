@@ -57,6 +57,28 @@ node _build/js/debug/build/cmd/moonpocket/moonpocket.js --input examples/protect
 
 模块同时提供类型化 API。`analyze_schedule` 返回 `Report`，`compare_schedules` 返回 `AnalysisDelta`，适合编辑器、机器人或其他 MoonBit 工具在内存中复用；不必启动 CLI，也不必解析 JSON。`examples/library-consumer.mbt` 展示了最小的版本对比调用。发布包版本为 `0.2.0`，接口变更和算法上限会记录在模块版本中。
 
+## 多日、资源和目标策略
+
+周期输入包含一个日模板和重复规则：
+
+```text
+day 09:00 18:00
+repeat 0 7 busy standup 09:30 10:00
+repeat 2 7 fixed exam 14:00 15:00
+```
+
+`expand_recurrence(text, days)` 返回每一天独立的 `.day` 快照，调用方可以逐日分析或保存结果。`FIRST` 是首个日索引，`PERIOD` 是重复周期；当前模型最多展开 366 天，日期标签由上层日历系统决定。
+
+任务文件支持资源窗口和三种目标策略：
+
+```text
+resource gpu 09:00 10:00
+task render 30 09:00 11:00 8 batch gpu
+task note 30 09:00 11:00 3 writing
+```
+
+CLI 使用 `--strategy value|count|finish` 选择目标。资源约束和策略是求解器输入的一部分，报告会保留目标、状态数和未排原因。
+
 ## 验证发布包
 
 ```powershell

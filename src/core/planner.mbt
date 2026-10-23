@@ -6,6 +6,7 @@ struct PlanTask {
   deadline : Int
   value : Int
   context : String
+  resource : String
   mut requires : Int
 } derive(ToJson)
 
@@ -101,8 +102,9 @@ fn parse_tasks(
   text : String,
   day_start : Int,
   day_end : Int,
-) -> Result[Array[PlanTask], String] {
+) -> Result[(Array[PlanTask], Array[(String, Int, Int)]), String] {
   let tasks : Array[PlanTask] = []
+  let resources : Array[(String, Int, Int)] = []
   let dependencies : Array[(String, String, Int)] = []
   let rows = words(text)
   for line = 0; line < rows.length(); line = line + 1 {
@@ -121,15 +123,29 @@ fn parse_tasks(
       }
       continue
     }
-    if row[0] != "task" || row.length() != 7 {
+    if row[0] == "resource" {
+      if row.length() != 4 || !plan_id(row[1]) {
+        return Err(error + "expected resource ID START END")
+      }
+      match (time(row[2], false), time(row[3], true)) {
+        (Some(s), Some(e)) if s < e && s >= day_start && e <= day_end =>
+          resources.push((row[1], s, e))
+        _ => return Err(error + "invalid resource window")
+      }
+      continue
+    }
+    if row[0] != "task" || (row.length() != 7 && row.length() != 8) {
       return Err(
-        error + "expected task ID DURATION RELEASE DEADLINE VALUE CONTEXT",
+        error +
+        "expected task ID DURATION RELEASE DEADLINE VALUE CONTEXT [RESOURCE]",
       )
     }
     if tasks.length() >= 14 {
       return Err(error + "exact planner supports at most 14 tasks")
     }
-    if !plan_id(row[1]) || !plan_id(row[6]) {
+    if !plan_id(row[1]) ||
+      !plan_id(row[6]) ||
+      (row.length() == 8 && !plan_id(row[7])) {
       return Err(error + "invalid task identifier or context")
     }
     if task_index(tasks, row[1]) is Some(_) {
@@ -157,6 +173,11 @@ fn parse_tasks(
           deadline,
           value,
           context: row[6],
+          resource: if row.length() == 8 {
+            row[7]
+          } else {
+            "general"
+          },
           requires: 0,
         })
       }
@@ -202,7 +223,7 @@ fn parse_tasks(
   if resolved != (1 << tasks.length()) - 1 {
     return Err("task dependency cycle detected")
   }
-  Ok(tasks)
+  Ok((tasks, resources))
 }
 
 ///|
@@ -210,11 +231,24 @@ fn task_slot(
   task : PlanTask,
   earliest : Int,
   windows : Array[(Int, Int)],
+  resources : Array[(String, Int, Int)],
 ) -> Int? {
   let ready = if earliest > task.release { earliest } else { task.release }
   for (s, e) in windows {
     let start = if ready > s { ready } else { s }
-    if start + task.duration <= e && start + task.duration <= task.deadline {
+    let finish = start + task.duration
+    let resource_ok = if task.resource == "general" {
+      true
+    } else {
+      let mut available = false
+      for (name, rs, re) in resources {
+        if name == task.resource && start >= rs && finish <= re {
+          available = true
+        }
+      }
+      available
+    }
+    if finish <= e && finish <= task.deadline && resource_ok {
       return Some(start)
     }
   }
@@ -222,11 +256,13 @@ fn task_slot(
 }
 
 ///|
-fn solve_tasks(
+fn solve_tasks_with_strategy(
   tasks : Array[PlanTask],
   windows : Array[(Int, Int)],
+  resources : Array[(String, Int, Int)],
   start : Int,
   switch_minutes : Int,
+  strategy : String,
 ) -> TaskPlan {
   let n = tasks.length()
   let states = 1 << n
@@ -252,7 +288,7 @@ fn solve_tasks(
       continue
     }
     transitions = transitions + 1
-    match task_slot(tasks[i], start, windows) {
+    match task_slot(tasks[i], start, windows, resources) {
       Some(s) => {
         let index = (1 << i) * n + i
         finishes[index] = s + tasks[i].duration
@@ -272,13 +308,32 @@ fn solve_tasks(
       if finishes[state] == 2000 {
         continue
       }
-      if values[mask] > best_value ||
+      let better = if strategy == "count" {
+        counts[mask] > best_count ||
+        (counts[mask] == best_count && values[mask] > best_value) ||
+        (
+          counts[mask] == best_count &&
+          values[mask] == best_value &&
+          finishes[state] < best_finish
+        )
+      } else if strategy == "finish" {
+        finishes[state] < best_finish ||
+        (finishes[state] == best_finish && values[mask] > best_value) ||
+        (
+          finishes[state] == best_finish &&
+          values[mask] == best_value &&
+          counts[mask] > best_count
+        )
+      } else {
+        values[mask] > best_value ||
         (values[mask] == best_value && counts[mask] > best_count) ||
         (
           values[mask] == best_value &&
           counts[mask] == best_count &&
           finishes[state] < best_finish
-        ) {
+        )
+      }
+      if better {
         best = state
         best_value = values[mask]
         best_count = counts[mask]
@@ -297,7 +352,7 @@ fn solve_tasks(
           } else {
             switch_minutes
           })
-        match task_slot(tasks[next], ready, windows) {
+        match task_slot(tasks[next], ready, windows, resources) {
           None => ()
           Some(s) => {
             let dest = (mask | bit) * n + next
@@ -340,7 +395,7 @@ fn solve_tasks(
     if (selected & (1 << i)) != 0 {
       continue
     }
-    let reason = if task_slot(tasks[i], start, windows) is None {
+    let reason = if task_slot(tasks[i], start, windows, resources) is None {
       "no_contiguous_window"
     } else if (tasks[i].requires & selected) != tasks[i].requires {
       "prerequisite_not_scheduled"
@@ -353,7 +408,13 @@ fn solve_tasks(
     schema_version: 1,
     algorithm: "subset_dp_earliest_finish",
     optimal: true,
-    objective: "max_value_then_count_then_earliest_finish",
+    objective: if strategy == "count" {
+      "max_count_then_value_then_earliest_finish"
+    } else if strategy == "finish" {
+      "earliest_finish_then_value_then_count"
+    } else {
+      "max_value_then_count_then_earliest_finish"
+    },
     total_value: best_value,
     scheduled_count: best_count,
     switch_minutes,
@@ -362,6 +423,19 @@ fn solve_tasks(
     assignments,
     unscheduled,
   }
+}
+
+///|
+fn solve_tasks(
+  tasks : Array[PlanTask],
+  windows : Array[(Int, Int)],
+  resources : Array[(String, Int, Int)],
+  start : Int,
+  switch_minutes : Int,
+) -> TaskPlan {
+  solve_tasks_with_strategy(
+    tasks, windows, resources, start, switch_minutes, "value",
+  )
 }
 
 ///|
@@ -382,7 +456,7 @@ pub fn plan_schedule(
     Ok((start, end, events)) =>
       match parse_tasks(task_text, start, end) {
         Err(e) => Err(e)
-        Ok(tasks) => {
+        Ok((tasks, resources)) => {
           let (_, pockets) = calculate(start, end, events, 1, recovery, "")
           let windows : Array[(Int, Int)] = []
           for p in pockets {
@@ -395,7 +469,53 @@ pub fn plan_schedule(
               )
             }
           }
-          Ok(solve_tasks(tasks, windows, start, switch_minutes))
+          Ok(solve_tasks(tasks, windows, resources, start, switch_minutes))
+        }
+      }
+  }
+}
+
+///|
+/// Select a deterministic objective without replacing the solver.
+pub fn plan_schedule_with_strategy(
+  day_text : String,
+  task_text : String,
+  recovery : Int,
+  switch_minutes : Int,
+  strategy : String,
+) -> Result[TaskPlan, String] {
+  if strategy != "value" && strategy != "count" && strategy != "finish" {
+    return Err("strategy must be value, count or finish")
+  }
+  if recovery < 0 ||
+    recovery > 1440 ||
+    switch_minutes < 0 ||
+    switch_minutes > 1440 {
+    return Err("recovery and switch minutes must be 0..1440")
+  }
+  match parse(day_text) {
+    Err(e) => Err(e)
+    Ok((start, end, events)) =>
+      match parse_tasks(task_text, start, end) {
+        Err(e) => Err(e)
+        Ok((tasks, resources)) => {
+          let (_, pockets) = calculate(start, end, events, 1, recovery, "")
+          let windows : Array[(Int, Int)] = []
+          for p in pockets {
+            if p.usable_minutes > 0 {
+              windows.push(
+                (
+                  time(p.usable_start, true).unwrap(),
+                  time(p.end, true).unwrap(),
+                ),
+              )
+            }
+          }
+          Ok(
+            solve_tasks_with_strategy(
+              tasks, windows, resources, start, switch_minutes, strategy,
+            ),
+          )
         }
       }
   }
@@ -409,6 +529,23 @@ pub fn plan_from_text(
   switch_minutes : Int,
 ) -> Result[String, String] {
   match plan_schedule(day_text, task_text, recovery, switch_minutes) {
+    Err(error) => Err(error)
+    Ok(plan) => Ok(@json.to_json(plan).stringify())
+  }
+}
+
+///|
+pub fn plan_from_text_with_strategy(
+  day_text : String,
+  task_text : String,
+  recovery : Int,
+  switch_minutes : Int,
+  strategy : String,
+) -> Result[String, String] {
+  match
+    plan_schedule_with_strategy(
+      day_text, task_text, recovery, switch_minutes, strategy,
+    ) {
     Err(error) => Err(error)
     Ok(plan) => Ok(@json.to_json(plan).stringify())
   }

@@ -73,6 +73,8 @@ match @core.analyze_text("day 09:00 18:00\nbusy lunch 12:00 13:00", 45, 10) {
 
 类型化 API 包括 `@core.analyze_schedule`、`@core.compare_schedules`、`@core.plan_schedule(day, tasks, recovery, switch_minutes)` 和 `@core.reclaim_schedule(day, min_focus, recovery, target, budget, costs)`；字符串包装 API 分别为 `analyze_text`、`plan_from_text` 和 `reclaim_from_text`。`compare_schedules` 直接返回两个版本的忙碌、空闲和专注变化，不需要调用方解析 JSON。最小库消费者示例见 [library-consumer.mbt](examples/library-consumer.mbt)。排程最多 14 个任务，联合移除最多 16 个可移动安排，这是为了保留精确解和可解释的穷举证明。
 
+排程任务可以追加资源名，例如 `task render 30 09:00 11:00 8 batch gpu`，并在任务文件中声明 `resource gpu 09:00 10:00`。任务必须同时满足专注窗口和资源窗口。`plan_schedule_with_strategy` 支持 `value`、`count`、`finish` 三种目标策略；周期日程可用 `expand_recurrence` 将重复规则展开为多个独立日快照，最多 366 天。
+
 ## 验证
 
 ```powershell

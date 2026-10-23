@@ -72,6 +72,7 @@ fn run() -> Unit {
   let mut target = 0
   let mut budget = 16
   let mut switching = 0
+  let mut strategy = "value"
   let mut min_focus = 45
   let mut recovery = 10
   let mut required = 0
@@ -99,6 +100,7 @@ fn run() -> Unit {
       "--mode" => mode = value
       "--tasks" => task_path = value
       "--costs" => cost_path = value
+      "--strategy" => strategy = value
       "--target" | "--switch" =>
         match number(value) {
           None => {
@@ -183,6 +185,10 @@ fn run() -> Unit {
       fail("Reclaim mode does not accept task options", 2)
       return
     }
+    if mode == "reclaim" && strategy != "value" {
+      fail("--strategy requires plan mode", 2)
+      return
+    }
     if extra_path == "-" && input == "-" {
       fail("Only one input may read stdin", 2)
       return
@@ -199,7 +205,9 @@ fn run() -> Unit {
       }
     }
     let result = if mode == "plan" {
-      @core.plan_from_text(text, extra, recovery, switching)
+      @core.plan_from_text_with_strategy(
+        text, extra, recovery, switching, strategy,
+      )
     } else {
       @core.reclaim_from_text(text, min_focus, recovery, target, budget, extra)
     }
@@ -218,7 +226,11 @@ fn run() -> Unit {
     }
     return
   }
-  if task_path != "" || cost_path != "" || target != 0 || switching != 0 {
+  if task_path != "" ||
+    cost_path != "" ||
+    target != 0 ||
+    switching != 0 ||
+    strategy != "value" {
     fail("Use --mode plan or --mode reclaim for solver options", 2)
     return
   }
